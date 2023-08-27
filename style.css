@@ -1,0 +1,15 @@
+body {
+    height: 100vh;
+    margin: 0;
+}
+#root, #target {
+    height: 100%;
+}
+#target {
+    touch-action: none;
+    display: grid;
+    place-content: center;
+}
+#target > svg {
+    width: 100%;
+}
