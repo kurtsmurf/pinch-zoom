@@ -1,58 +1,43 @@
 import { createSignal } from "solid-js";
 
-const createPinchZoom = (onZoom: (factor: number) => void) => {
-  const pointers = [];
-  let prevDiff = -1;
+const createPinchGesture = (onChange: (factor: number) => void) => {
+  let distance = 0;
 
-  function pointerdownHandler(ev: PointerEvent) {
-    pointers.push(ev);
-  }
-
-  function pointermoveHandler(ev: PointerEvent) {
-    // update pointers
-    const index = pointers.findIndex(
-      (cachedEv) => cachedEv.pointerId === ev.pointerId,
-    );
-    pointers[index] = ev;
-    // If two pointers are down, check for pinch gestures
-    if (pointers.length === 2) {
-      // Calculate the distance between the two pointers
-      const curDiff = Math.abs(pointers[0].clientX - pointers[1].clientX);
-      if (prevDiff > 0) {
-        onZoom(curDiff / prevDiff);
-      }
-      prevDiff = curDiff;
+  function touchStartHandler(e: TouchEvent) {
+    if (e.touches.length === 2) {
+      const [touch1, touch2] = e.touches;
+      distance = Math.abs(touch2.clientX - touch1.clientX);
     }
   }
 
-  function pointerupHandler(ev: PointerEvent) {
-    const index = pointers.findIndex(
-      (cachedEv) => cachedEv.pointerId === ev.pointerId,
-    );
-    pointers.splice(index, 1);
-    if (pointers.length < 2) {
-      prevDiff = -1;
+  function touchMoveHandler(e: TouchEvent) {
+    if (e.touches.length === 2) {
+      const [touch1, touch2] = e.touches;
+      const currentDistance = Math.abs(touch2.clientX - touch1.clientX);
+      onChange(currentDistance / distance);
+      distance = currentDistance;
     }
   }
 
-  return { pointerdownHandler, pointermoveHandler, pointerupHandler };
+  function touchEndHandler(e: TouchEvent) {
+    distance = 0;
+  }
+
+  return { touchStartHandler, touchMoveHandler, touchEndHandler };
 };
 
 const App = () => {
   const [radius, setRadius] = createSignal(0.5);
-  const pinchZoom = createPinchZoom((factor) => {
+  const pinch = createPinchGesture((factor) => {
     setRadius((prev) => Math.max(0.01, Math.min(1, prev * factor)));
   });
 
   return (
     <div
       id="target"
-      onpointerdown={pinchZoom.pointerdownHandler}
-      onpointermove={pinchZoom.pointermoveHandler}
-      onpointerup={pinchZoom.pointerupHandler}
-      onpointercancel={pinchZoom.pointerupHandler}
-      onpointerout={pinchZoom.pointerupHandler}
-      onpointerleave={pinchZoom.pointerupHandler}
+      ontouchstart={pinch.touchStartHandler}
+      ontouchmove={pinch.touchMoveHandler}
+      ontouchend={pinch.touchEndHandler}
     >
       <svg viewBox="0 0 2 2">
         <circle cx="1" cy="1" r={radius()} fill="black"></circle>
