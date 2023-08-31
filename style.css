@@ -6,10 +6,15 @@ body {
     height: 100%;
 }
 #target {
-    touch-action: none;
+    /* disables native pinch-zoom by limiting touch actions to vertical and horizontal scrolling */
+    touch-action: pan-x pan-y;
     display: grid;
     place-content: center;
 }
 #target > svg {
     width: 100%;
+}
+.not-target {
+    height: 400px;
+    background: magenta;
 }
