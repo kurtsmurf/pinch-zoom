@@ -1,23 +1,23 @@
 import { createSignal } from "solid-js";
 
-type Pinch = { touch1: Touch; touch2: Touch };
+type DoubleTouch = { touch1: Touch; touch2: Touch };
 
-const createPinch = (
+const createPinchHandler = (
   onChange: (
-    props: { initial: Pinch; previous: Pinch; current: Pinch },
+    props: { initial: DoubleTouch; previous: DoubleTouch; current: DoubleTouch },
   ) => void,
 ) => {
-  let initial: Pinch | undefined;
-  let previous: Pinch | undefined;
+  let initial: DoubleTouch | undefined;
+  let previous: DoubleTouch | undefined;
 
-  function touchStartHandler(e: TouchEvent) {
+  function touchStart(e: TouchEvent) {
     if (e.touches.length === 2) {
       const [touch1, touch2] = e.touches;
       previous = initial = { touch1, touch2 };
     }
   }
 
-  function touchMoveHandler(e: TouchEvent) {
+  function touchMove(e: TouchEvent) {
     if (e.touches.length === 2) {
       const [touch1, touch2] = e.touches;
       const current = { touch1, touch2 };
@@ -26,16 +26,16 @@ const createPinch = (
     }
   }
 
-  function touchEndHandler(e: TouchEvent) {
+  function touchEnd(e: TouchEvent) {
     previous = initial = undefined;
   }
 
-  return { touchStartHandler, touchMoveHandler, touchEndHandler };
+  return { touchStart, touchMove, touchEnd };
 };
 
 const App = () => {
   const [radius, setRadius] = createSignal(0.5);
-  const pinch = createPinch(({ current, previous }) => {
+  const pinchHandler = createPinchHandler(({ current, previous }) => {
     const currentDistance = Math.abs(
       current.touch1.clientX - current.touch2.clientX,
     );
@@ -51,9 +51,9 @@ const App = () => {
       <div class="not-target"></div>
       <div
         id="target"
-        ontouchstart={pinch.touchStartHandler}
-        ontouchmove={pinch.touchMoveHandler}
-        ontouchend={pinch.touchEndHandler}
+        ontouchstart={pinchHandler.touchStart}
+        ontouchmove={pinchHandler.touchMove}
+        ontouchend={pinchHandler.touchEnd}
       >
         <svg viewBox="0 0 2 2">
           <circle cx="1" cy="1" r={radius()} fill="black"></circle>
